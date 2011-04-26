@@ -32,15 +32,15 @@ class SmartPresenterFactory extends Nette\Application\PresenterFactory {
 
 	/**
 	 * Service factory.
-	 * @param array $options
+	 * @param array $patterns
 	 * @return SmartPresenterFactory
 	 */
-	public static function register($options){
-		if(!$options){
-			$options = array();
+	public static function register($patterns){
+		if(!$patterns){
+			$patterns = array();
 		}
-		foreach($options as $key => $val){
-			$options[$key] = iterator_to_array($val);
+		foreach($patterns as $key => $val){
+			$patterns[$key] = iterator_to_array($val);
 		}
 
 		$defaults = array(
@@ -55,19 +55,10 @@ class SmartPresenterFactory extends Nette\Application\PresenterFactory {
 				'presenter' => '/presenters/%sPresenter.php'
 			)
 		);
-
-		$patterns = array();
-		foreach($defaults as $key => $val){
-			if(isset($options[$key])){
-				$patterns[$key] = $options[$key] + $val;
-			} else{
-				$patterns[$key] = $defaults[$key];
-			}
-		}
 		return new static(
 			Environment::getVariable('appDir'),
 			Environment::getApplication()->getContext(),
-			$patterns
+			array_replace_recursive($defaults, $patterns)
 		);
 	}
 
