@@ -36,6 +36,9 @@ class SmartPresenterFactory extends Nette\Application\PresenterFactory {
 	 * @return SmartPresenterFactory
 	 */
 	public static function register($options){
+		if(!$options){
+			$options = array();
+		}
 		foreach($options as $key => $val){
 			$options[$key] = iterator_to_array($val);
 		}
