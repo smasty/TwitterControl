@@ -1,0 +1,18 @@
+{*
+ * Available variables:
+ * - $control (NavigationControl|NavigationNode) The control.
+ * - $renderTree (bool) Whether or not to render the full tree.
+ * - $children (Iterator) Available if control has children.
+ *}
+
+{if $control->node}
+	<a href="{$control->link}">{$control->label}</a>
+{/if}
+{if isset($children) && !($control->node && !$renderTree)}
+	<ul n:inner-foreach="$children as $child" n:class="!$control->node ? 'control menu'">
+		<li class="{if $child->isCurrent}current {/if}{if $child->hasChildren()}parent {else}leaf {/if}{if $iterator->first}first {/if}{if $iterator->last}last {/if}{if $iterator->odd}odd {else}even {/if}item-{$iterator->counter}">
+			{!$child->render($renderTree)}
+		</li>
+	</ul>
+{/if}
+

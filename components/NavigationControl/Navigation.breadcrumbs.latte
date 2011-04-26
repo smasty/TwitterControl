@@ -1,0 +1,11 @@
+{*
+ * Available variables:
+ * - $control (NavigationControl) The control.
+ *}
+<div class="control breadcrumbs" n:inner-foreach="$control->getComponents() as $node">
+	{if $iterator->last}
+	<span class="current">{$node->label}</span>
+	{else}
+	<a href="{$node->link}">{$node->label}</a> &raquo;
+	{/if}
+</div>
