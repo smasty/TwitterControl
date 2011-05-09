@@ -23,8 +23,8 @@ class SmartPresenterFactory extends Nette\Application\PresenterFactory {
 	private $patterns;
 
 
-	public function __construct($baseDir, Nette\DI\IContainer $container, array $patterns){
-		parent::__construct($baseDir, $container);
+	public function __construct($baseDir, Nette\DI\IContainer $context, array $patterns){
+		parent::__construct($baseDir, $context);
 		$this->baseDir = $baseDir;
 		$this->patterns = $patterns;
 	}
@@ -32,11 +32,11 @@ class SmartPresenterFactory extends Nette\Application\PresenterFactory {
 
 	/**
 	 * Service factory.
-	 * @param \Nette\DI\IContainer $container
+	 * @param \Nette\DI\IContainer $context
 	 * @param array $options
 	 * @return SmartPresenterFactory
 	 */
-	public static function register(\Nette\DI\IContainer $container, $options){
+	public static function register(\Nette\DI\IContainer $context, $options){
 		if(!$options){
 			$options = array();
 		}
@@ -58,7 +58,7 @@ class SmartPresenterFactory extends Nette\Application\PresenterFactory {
 		);
 		return new static(
 			Environment::getVariable('appDir'),
-			$container,
+			$context,
 			array_replace_recursive($defaults, $options)
 		);
 	}
