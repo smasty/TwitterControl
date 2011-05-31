@@ -1,0 +1,22 @@
+<style>
+	#nette-debug-panel-NeevoPanel td.sql{ background: white !important;min-width:200px}
+	#nette-debug-panel-NeevoPanel td.sql .link{ color:#bbb !important;font-size:.9em}
+</style>
+<h1>Queries: {$numQueries}{if $totalTime}, time: {$totalTime|time} ms{/if}</h1>
+<div class="nette-inner">
+	<table>
+		<tr>
+			<th>Time (ms)</th>
+			<th>SQL</th>
+			<th>Rows</th>
+		</tr>
+		<tr n:foreach="$tickets as $ticket">
+			<td>{$ticket['time']|time}</td>
+			<td class="sql">
+				{!$ticket['sql']|sql}
+				<a class="link" href="{$ticket['source']|editorLink}">{$ticket['source']|source}</a>
+			</td>
+			<td>{$ticket['rows']}</td>
+		</tr>
+	</table>
+</div>
