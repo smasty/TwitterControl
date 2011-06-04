@@ -8,6 +8,8 @@
  * Copyright (c) 2011 Martin Srank (http://smasty.net)
  *
  */
+use Nette\Diagnostics\Debugger,
+	Nette\DI\Container;
 
 
 /**
@@ -16,6 +18,7 @@
 class NeevoService {
 
 
+	/** @var string */
 	public static $configKey = 'database';
 
 
@@ -24,9 +27,17 @@ class NeevoService {
 	 * @param Nette\DI\Container $context
 	 * @return Neevo
 	 */
-	public static function create(Nette\DI\Container $context){
+	public static function create(Container $context, array $options){
 		$neevo = new Neevo($context->params[self::$configKey], new NeevoCacheNette($context));
-		NeevoPanel::register($neevo);
+
+		// Register debugBar panel
+		$panel = new NeevoPanel($options);
+		$neevo->attachObserver($panel, NeevoPanel::QUERY + NeevoPanel::EXCEPTION);
+		Debugger::$bar->addPanel($panel);
+
+		// Register Bluescreen panel
+		Debugger::$blueScreen->addPanel(callback($panel, 'renderException'), get_class($panel));
+
 		return $neevo;
 	}
 

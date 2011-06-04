@@ -8,12 +8,19 @@
  * Copyright (c) 2011 Martin Srank (http://smasty.net)
  *
  */
+use Nette\Diagnostics\Debugger,
+	Nette\Diagnostics\Helpers,
+	Nette\Diagnostics\BlueScreen,
+	Nette\Diagnostics\IBarPanel,
+	Nette\Templating\FileTemplate,
+	Nette\Latte\Engine,
+	Nette\Utils\Html;
 
 
 /**
  * Provides Nette debugBar panel with info about performed queries.
  */
-class NeevoPanel implements INeevoObserver, Nette\Diagnostics\IBarPanel {
+class NeevoPanel implements INeevoObserver, IBarPanel {
 
 
 	public static $templateFile = '/NeevoPanel.latte';
@@ -27,18 +34,17 @@ class NeevoPanel implements INeevoObserver, Nette\Diagnostics\IBarPanel {
 	/** @var int */
 	private $totalTime = 0;
 
+	/** @var array */
+	private $failedQuerySource;
 
-	/**
-	 * Register new Nette debugBar panel.
-	 * @param Neevo $neevo
-	 */
-	public static function register(Neevo $neevo){
-		$panel = new self;
+	/** @var bool */
+	private $explain = true;
 
-		$neevo->attachObserver($panel, true);
 
-		Nette\Diagnostics\Debugger::$bar->addPanel($panel);
-		Nette\Diagnostics\Debugger::$blueScreen->addPanel(callback($panel, 'renderException'), __CLASS__);
+	public function __construct(array $options){
+		if(isset($options['explain'])){
+			$this->explain = $options['explain'];
+		}
 	}
 
 
@@ -48,36 +54,39 @@ class NeevoPanel implements INeevoObserver, Nette\Diagnostics\IBarPanel {
 	 * @param int $event
 	 */
 	public function updateStatus(INeevoObservable $observable, $event){
-		if($event & INeevoObserver::QUERY){
-			$statement = func_get_arg(2);
-			$this->numQueries++;
-			$this->totalTime += $statement->getTime();
+		$source = null;
+		foreach(debug_backtrace(false) as $t){
+			if(isset($t['file']) && strpos($t['file'], realpath(__DIR__ . '/../')) !== 0){
+				$source = array($t['file'], (int) $t['line']);
+				break;
+			}
+		}
 
-			if($statement instanceof NeevoResult){
+		if($event & INeevoObserver::QUERY){
+			$this->numQueries++;
+			$this->totalTime += $observable->getTime();
+
+			if($observable instanceof NeevoResult){
 				try{
-					$rows = count($statement);
+					$rows = count($observable);
 				} catch(Exception $e){
 					$rows = '?';
 				}
+				$explain = $this->explain ? $observable->explain() : null;
 			} else{
 				$rows = '-';
 			}
 
-			$source = null;
-			foreach(debug_backtrace(false) as $t){
-				if(isset($t['file']) && strpos($t['file'], realpath(__DIR__ . '/../')) !== 0){
-					$source = array($t['file'], (int) $t['line']);
-					break;
-				}
-			}
-
 			$this->tickets[] = array(
-				'sql' => $statement->__toString(),
-				'time' => $statement->getTime(),
+				'sql' => $observable->__toString(),
+				'time' => $observable->getTime(),
 				'rows' => $rows,
 				'source' => $source,
-				'connection' => $observable
+				'connection' => $observable->getConnection(),
+				'explain' => isset($explain) ? $explain : null
 			);
+		} elseif($event === INeevoObserver::EXCEPTION){
+			$this->failedQuerySource = $source;
 		}
 	}
 
@@ -88,9 +97,14 @@ class NeevoPanel implements INeevoObserver, Nette\Diagnostics\IBarPanel {
 	 */
 	public function renderException($e){
 		if($e instanceof NeevoException && $e->getSql()){
+			list($file, $line) = $this->failedQuerySource;
 			return array(
 				'tab' => 'SQL',
 				'panel' => Neevo::highlightSql($e->getSql())
+				. '<p><b>File:</b> '
+				. Helpers::editorLink($file, $line)
+				. " &nbsp; <b>Line:</b> $line</p>"
+				. (is_file($file) ? '<pre>' . BlueScreen::highlightFile($file, $line) . '</pre>' : '')
 			);
 		}
 	}
@@ -118,36 +132,48 @@ class NeevoPanel implements INeevoObserver, Nette\Diagnostics\IBarPanel {
 			return '';
 		}
 
-		$template = new Nette\Templating\FileTemplate(__DIR__ . self::$templateFile);
-		$template->registerFilter(new Nette\Latte\Engine);
-
+		$template = new FileTemplate(__DIR__ . self::$templateFile);
+		$template->registerFilter(new Engine);
 		$template->registerHelper('time', function($time){
 			return sprintf('%0.3f', $time * 1000);
 		});
-		$template->registerHelper('editorLink', function($source){
-			return strtr(Nette\Diagnostics\Debugger::$editor,
-				array('%file' => rawurlencode($source[0]), '%line' => $source[1]));
+		$template->registerHelper('sql', callback('Neevo', 'highlightSql'));
+		$template->registerHelper('sourceLink', function($source){
+			$el = Html::el('a');
+			$el->class = 'link';
+			$el->href(strtr(Debugger::$editor,
+				array('%file' => rawurlencode($source[0]), '%line' => $source[1])
+			));
+			$el->setText(basename(dirname($source[0])) . '/' . basename($source[0]) . ":$source[1]");
+			$el->title = implode(':', $source);
+
+			return $el;
 		});
-		$template->registerHelper('source', function($source){
-			return basename(dirname($source[0])) . '/' . basename($source[0]) . ":$source[1]";
-		});
-		$template->registerHelper('sql', function($sql, $len = 1000){
-			if(strlen($sql) > $len){
-				$sql = substr($sql, 0, $len) . "\xE2\x80\xA6";
-			}
-			return Neevo::highlightSql($sql);
+		$template->registerHelper('explain', function($ticket){
+			return $ticket['sql'];
 		});
 
 		$template->tickets = $this->tickets;
 		$template->totalTime = $this->totalTime;
 		$template->numQueries = $this->numQueries;
 
-		return $template->__toString();
+		return $template;
 	}
 
 
-	private function __construct(){
-
+	/**
+	 * Get file and line where the query was executed.
+	 * @return array
+	 */
+	private function getQuerySource(){
+		$source = null;
+		foreach(debug_backtrace(false) as $t){
+			if(isset($t['file']) && strpos($t['file'], realpath(__DIR__ . '/../')) !== 0){
+				$source = array($t['file'], (int) $t['line']);
+				break;
+			}
+		}
+		return $source;
 	}
 
 
