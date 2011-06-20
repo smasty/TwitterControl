@@ -25,8 +25,11 @@ class NeevoCacheNette implements INeevoCache {
 	private $cache;
 
 
-	public function __construct(\Nette\DI\IContainer $context){
-		$this->cache = new Nette\Caching\Cache($context->cacheStorage, self::$cacheKey);
+	/**
+	 * @param Nette\Caching\IStorage $storage
+	 */
+	public function __construct(Nette\Caching\IStorage $storage){
+		$this->cache = new Nette\Caching\Cache($storage, self::$cacheKey);
 	}
 
 

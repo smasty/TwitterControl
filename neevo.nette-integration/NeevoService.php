@@ -8,8 +8,8 @@
  * Copyright (c) 2011 Martin Srank (http://smasty.net)
  *
  */
-use Nette\Diagnostics\Debugger,
-	Nette\DI\Container;
+use Nette\Diagnostics,
+	Nette\DI;
 
 
 /**
@@ -24,19 +24,27 @@ class NeevoService {
 
 	/**
 	 * Neevo service factory.
-	 * @param Nette\DI\Container $context
+	 * @param DI\Container $context
 	 * @return Neevo
 	 */
-	public static function create(Container $context, array $options){
-		$neevo = new Neevo($context->params[self::$configKey], new NeevoCacheNette($context));
+	public static function create(DI\Container $context, array $options){
+		$neevo = new Neevo(
+			$context->params[self::$configKey],
+			new NeevoCacheNette($context->getService('cacheStorage'))
+		);
 
-		// Register debugBar panel
+
+		// Register DebugBar panel
 		$panel = new NeevoPanel($options);
 		$neevo->attachObserver($panel, NeevoPanel::QUERY + NeevoPanel::EXCEPTION);
-		Debugger::$bar->addPanel($panel);
+		Diagnostics\Debugger::$bar->addPanel($panel);
+
 
 		// Register Bluescreen panel
-		Debugger::$blueScreen->addPanel(callback($panel, 'renderException'), get_class($panel));
+		Diagnostics\Debugger::$blueScreen->addPanel(
+			callback($panel, 'renderException'),
+			get_class($panel)
+		);
 
 		return $neevo;
 	}
