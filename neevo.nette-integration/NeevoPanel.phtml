@@ -26,7 +26,7 @@
 		if(isset($ticket['explain'])): ?>
 			<table id="nette-NeevoPanel-row-<?php echo $i ?>" class="nette-collapsed">
 				<tr>
-					<th><?php echo implode('</td><td>', $ticket['explain'][0]) ?></th>
+					<th><?php echo implode('</th><th>', array_keys($ticket['explain'][0])) ?></th>
 				</tr>
 				<?php foreach($ticket['explain'] as $row):
 					echo '<tr><td>' . implode('</td><td>', $row) . '</td></tr>';
