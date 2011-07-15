@@ -8,10 +8,12 @@
  * Copyright (c) 2011 Martin Srank (http://smasty.net)
  *
  */
+use Nette\Caching\IStorage,
+	Nette\Caching\Cache;
 
 
 /**
- * Neevo cache using Nette Framework cache.
+ * Neevo cache adapter for Nette Framework cache storage system.
  * @author Martin Srank
  * @package NeevoCache
  */
@@ -21,15 +23,15 @@ class NeevoCacheNette implements INeevoCache {
 	/** @var string */
 	public static $cacheKey = 'Neevo.Cache';
 
-	/** @var Nette\Caching\Cache */
+	/** @var Cache */
 	private $cache;
 
 
 	/**
-	 * @param Nette\Caching\IStorage $storage
+	 * @param IStorage $storage
 	 */
-	public function __construct(Nette\Caching\IStorage $storage){
-		$this->cache = new Nette\Caching\Cache($storage, self::$cacheKey);
+	public function __construct(IStorage $storage){
+		$this->cache = new Cache($storage, self::$cacheKey);
 	}
 
 

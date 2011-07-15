@@ -22,8 +22,8 @@ Instructions
     services:
         ...
         neevo:
-			factory: NeevoService::create
-			option: [explain: yes]
+			factory: NeevoFactory::create
+			arguments: [%database%, explain: yes]
 
 	'explain' option denotes whether or not you want to run EXPLAIN on all
 	performed SELECT queries for debugging purposes. Defaults to 'yes'.
@@ -37,6 +37,3 @@ Instructions
         username: root
         password: ****
         database: my_database
-
-4.  You can change the "database" section name, it's stored in
-    NeevoService::$configKey static property.

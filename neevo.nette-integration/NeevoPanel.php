@@ -8,12 +8,18 @@
  * Copyright (c) 2011 Martin Srank (http://smasty.net)
  *
  */
+use Nette\Diagnostics\IBarPanel,
+	Nette\Diagnostics\Debugger,
+	Nette\Diagnostics\Helpers,
+	Nette\Diagnostics\BlueScreen,
+	Nette\Utils\Html;
+
 
 
 /**
- * Provides Nette debugBar panel with info about performed queries.
+ * Provides Nette DebugBar panel with info about performed queries.
  */
-class NeevoPanel implements INeevoObserver, Nette\Diagnostics\IBarPanel {
+class NeevoPanel implements INeevoObserver, IBarPanel {
 
 
 	public static $templateFile = '/NeevoPanel.phtml';
@@ -34,10 +40,33 @@ class NeevoPanel implements INeevoObserver, Nette\Diagnostics\IBarPanel {
 	private $explain = true;
 
 
-	public function __construct(array $options){
-		if(isset($options['explain'])){
-			$this->explain = $options['explain'];
-		}
+	/**
+	 * Do not call directly, use static method register().
+	 * @param bool $explain
+	 * @return void
+	 */
+	public function __construct($explain){
+		$this->explain = (bool) $explain;
+	}
+
+
+	/**
+	 * Register Neevo DebugBar and Bluescreen panels.
+	 * @param Neevo $neevo
+	 * @param bool $explain Run EXPLAIN on all SELECT queries?
+	 * @return void
+	 */
+	public static function register(Neevo $neevo, $explain){
+		// Register DebugBar panel
+		$panel = new static($explain);
+		$neevo->attachObserver($panel, self::QUERY + self::EXCEPTION);
+		Debugger::$bar->addPanel($panel);
+
+		// Register Bluescreen panel
+		Debugger::$blueScreen->addPanel(
+			callback($panel, 'renderException'),
+			get_class($panel)
+		);
 	}
 
 
@@ -45,6 +74,7 @@ class NeevoPanel implements INeevoObserver, Nette\Diagnostics\IBarPanel {
 	 * Receives update from observable.
 	 * @param INeevoObservable $observable
 	 * @param int $event
+	 * @return void
 	 */
 	public function updateStatus(INeevoObservable $observable, $event){
 		$source = null;
@@ -88,6 +118,7 @@ class NeevoPanel implements INeevoObserver, Nette\Diagnostics\IBarPanel {
 	/**
 	 * Renders SQL query string to Nette debug bluescreen when available.
 	 * @param NeevoException $e
+	 * @return array
 	 */
 	public function renderException($e){
 		if($e instanceof NeevoException && $e->getSql()){
@@ -96,10 +127,10 @@ class NeevoPanel implements INeevoObserver, Nette\Diagnostics\IBarPanel {
 				'tab' => 'SQL',
 				'panel' => Neevo::highlightSql($e->getSql())
 				. '<p><b>File:</b> '
-				. Nette\Diagnostics\Helpers::editorLink($file, $line)
+				. Helpers::editorLink($file, $line)
 				. " &nbsp; <b>Line:</b> $line</p>"
 				. (is_file($file)
-					? '<pre>' . Nette\Diagnostics\BlueScreen::highlightFile($file, $line) . '</pre>'
+					? '<pre>' . BlueScreen::highlightFile($file, $line) . '</pre>'
 					: '')
 			);
 		}
@@ -107,7 +138,7 @@ class NeevoPanel implements INeevoObserver, Nette\Diagnostics\IBarPanel {
 
 
 	/**
-	 * Renders Nette debugBar tab.
+	 * Renders Nette DebugBar tab.
 	 * @return string
 	 */
 	public function getTab(){
@@ -120,7 +151,7 @@ class NeevoPanel implements INeevoObserver, Nette\Diagnostics\IBarPanel {
 
 
 	/**
-	 * Renders Nette debugBar panel.
+	 * Renders Nette DebugBar panel.
 	 * @return string
 	 */
 	public function getPanel(){
@@ -132,9 +163,9 @@ class NeevoPanel implements INeevoObserver, Nette\Diagnostics\IBarPanel {
 			return sprintf('%0.3f', $time * 1000);
 		};
 		$sourceLink = function($source){
-			$el = Nette\Utils\Html::el('a');
+			$el = Html::el('a');
 			$el->class = 'link';
-			$el->href(strtr(Nette\Diagnostics\Debugger::$editor,
+			$el->href(strtr(Debugger::$editor,
 				array('%file' => rawurlencode($source[0]), '%line' => $source[1])
 			));
 			$el->setText(basename(dirname($source[0])) . '/' . basename($source[0]) . ":$source[1]");
