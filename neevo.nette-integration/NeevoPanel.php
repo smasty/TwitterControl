@@ -57,16 +57,16 @@ class NeevoPanel implements INeevoObserver, IBarPanel {
 	 * @return void
 	 */
 	public static function register(Neevo $neevo, $explain){
-		// Register DebugBar panel
 		$panel = new static($explain);
-		$neevo->attachObserver($panel, self::QUERY + self::EXCEPTION);
-		Debugger::$bar->addPanel($panel);
+		$neevo->attachObserver($panel, Debugger::$productionMode
+			? self::EXCEPTION : self::QUERY + self::EXCEPTION);
+
+		// Register DebugBar panel
+		if(!Debugger::$productionMode)
+			Debugger::$bar->addPanel($panel);
 
 		// Register Bluescreen panel
-		Debugger::$blueScreen->addPanel(
-			callback($panel, 'renderException'),
-			get_class($panel)
-		);
+		Debugger::$blueScreen->addPanel(callback($panel, 'renderException'), __CLASS__);
 	}
 
 
