@@ -45,6 +45,12 @@ class TwitterControl extends Control {
 	/** @var array */
 	private $config;
 
+	/** @var array */
+	private $tweetCache = array();
+
+
+	const VERSION = '1.0';
+
 
 	/**
 	 * Create the TwitterControl.
@@ -79,7 +85,7 @@ class TwitterControl extends Control {
 
 
 	/**
-	 * Render with defined config.
+	 * Render with predefined config.
 	 * @param array $config Config overrides
 	 * @return void
 	 */
@@ -215,8 +221,11 @@ class TwitterControl extends Control {
 	 */
 	public function loadTweets(){
 		$path = (string) $this->generateRequestUrl();
+		if(isset($this->tweetCache[$path])){
+			return $this->tweetCache[$path];
+		}
 		try{
-			return Json::decode(@file_get_contents($path)); // intentional @ shut-up
+			return $this->tweetCache[$path] = Json::decode(@file_get_contents($path)); // intentional @ shut-up
 		} catch(JsonException $e){
 			return null;
 		}
