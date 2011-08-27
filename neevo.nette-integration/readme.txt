@@ -22,7 +22,7 @@ Instructions
     services:
         ...
         neevo:
-			factory: NeevoFactory::create
+			factory: NeevoFactory::createService
 			arguments: [%database%, explain: yes]
 
 	'explain' option denotes whether or not you want to run EXPLAIN on all

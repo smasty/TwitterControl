@@ -8,13 +8,14 @@
  * Copyright (c) 2011 Martin Srank (http://smasty.net)
  *
  */
-use Nette\DI\Container;
+use Nette\DI\Container,
+	Nette\DI\IServiceBuilder;
 
 
 /**
  * Neevo factory class for Nette Framework Dependency Injection Container.
  */
-class NeevoFactory {
+class NeevoFactory implements IServiceBuilder {
 
 
 	/**
@@ -22,8 +23,8 @@ class NeevoFactory {
 	 * @param Container $container
 	 * @return Neevo
 	 */
-	public static function create(Container $container, array $config, $explain = true){
-		$neevo = new Neevo($config, new NeevoCacheNette($container->cacheStorage));
+	public static function createService(Container $container, array $config = null, $explain = true){
+		$neevo = new Neevo((array) $config, new NeevoCacheNette($container->cacheStorage));
 		NeevoPanel::register($neevo, $explain);
 		return $neevo;
 	}
