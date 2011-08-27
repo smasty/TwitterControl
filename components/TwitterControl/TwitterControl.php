@@ -58,10 +58,8 @@ class TwitterControl extends Control {
 	 * @return void
 	 */
 	public function __construct($config){
-		$e = new InvalidStateException('No screenName/userId specified.');
-
 		if(!$config)
-			throw $e;
+			throw new InvalidStateException('No configuration given.');
 		if(is_scalar($config))
 				$config = array((is_numeric($config) ? 'userId' : 'screenName') => $config);
 
@@ -80,7 +78,7 @@ class TwitterControl extends Control {
 		$this->config = $config + $defaults;
 
 		if($this->config['userId'] == null && $this->config['screenName'] == null)
-			throw $e;
+			throw new InvalidStateException('No screenName/userId specified.');
 	}
 
 
