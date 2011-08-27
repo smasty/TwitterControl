@@ -1,0 +1,81 @@
+{**
+ *
+ * TwitterControl for Nette Framework 2.0, http://github.com/smasty/TwitterControl
+ * Copyright 2011 Martin Srank (http://smasty.net)
+ * Licensed under terms of the MIT License (http://opensource.org/licenses/mit-license)
+ *
+ *}
+<div n:ifset="$tweets"
+	 n:class="TwitterControl, $config->intents ? with-intents, $config->header ? with-header,
+			  $config->avatars ? with-avatars, $config->retweets ? with-retweets, $config->replies ? with-replies
+">
+	{* Header *}
+	<div n:if="$config->header" class="header">
+		{var $user = $tweets[0]->user}
+		<a href="{$user->screen_name|twUrl}" target="_blank">
+			<img src="{$user->profile_image_url|avatar}" width="75" height="75">
+		</a>
+		<strong>{$user->name}</strong>
+		<a href="{$user->screen_name|twUrl}" target="_blank">@{$user->screen_name}</a><br>
+		<span n:if="$user->location" class="location">{$user->location}</span>
+		<a n:if="$user->url" href="{$user->url}" target="_blank" class="url">{$user->url}</a>
+		<span class="followers">
+			{$user->followers_count} follower{if $user->followers_count != 1}s{/if}
+		</span>
+	</div>
+
+	<ul class="body" n:inner-foreach="$tweets as $t">
+		{* Handling retweets *}
+		{if isset($t->retweeted_status)}
+			{var $rt = $t, $t = $t->retweeted_status}
+		{elseif isset($rt)}
+			{? unset($rt)}
+		{/if}
+
+		{* Tweet *}
+		<li n:class="$iterator->odd ? odd, $iterator->even ? even, $iterator->first ? first,
+				$iterator->last ? last, 'tweet-'.$iterator->counter, $t->in_reply_to_status_id ? is-reply,
+				isset($rt) ? is-retweet
+		">
+			{* "In reply to" link *}
+			<a n:if="$t->in_reply_to_status_id && $config->avatars" target="_blank"
+			   href="{$t->in_reply_to_screen_name|twUrl:$t->in_reply_to_status_id_str}"
+			   class="in-reply" title="In reply to {$t->in_reply_to_screen_name}">@</a>
+
+			{* Tweet header - avatar, username *}
+			<a href="{$t->user->screen_name|twUrl}">
+				<img n:if="$config->avatars" src="{$t->user->profile_image_url}" width="48" height="48" class="avatar">
+			</a>
+			<div n:tag-if="$config->avatars" class="wrap">
+				<p n:if="$config->avatars" class="line">
+					<a href="#" class="user">{$t->user->screen_name}</a>
+					<span class="name">{$t->user->name}</span>
+					<span n:ifset="$rt" class="retweeter" title="Retweeted by {$rt->user->screen_name}">
+						by {$rt->user->screen_name}
+					</span>
+				</p>
+				{* Tweet text *}
+				<p class="tweet">
+					<a n:if="!$config->avatars && isset($rt)" href="{$t->user->screen_name|twUrl}" class="retweeted">
+						{$t->user->screen_name}
+					</a>
+					{!$t|tweetify}
+				</p>
+				{* Tweet metadata - time/permalink, intents *}
+				<div class="meta">
+					<time datetime="{$t->created_at|date:'c'}" title="{$t->created_at|date:'g:i A M jS Y'}">
+						<a href="{$t->user->screen_name|twUrl:$t->id_str}">{$t->created_at|timeAgo}</a>
+					</time>
+					<p n:if="$config->intents" class="intents">
+						<a href="{$t->id_str|intent:'reply'}" class="reply">Reply</a>
+						<a href="{$t->id_str|intent:'retweet'}" class="retweet">Retweet</a>
+						<a href="{$t->id_str|intent:'favorite'}" class="favorite">Favorite</a>
+					</p>
+				</div>
+			</div>
+		</li>
+	</ul>
+{if $config->intents}
+	<script src="http://platform.twitter.com/widgets.js"></script>
+{/if}
+</div>
