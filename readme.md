@@ -1,6 +1,6 @@
-TwitterControl for Nette Framework 2.0, http://github.com/smasty/TwitterControl
-Copyright 2011 Martin Srank (http://smasty.net)
-Licensed under terms of the MIT License (http://opensource.org/licenses/mit-license)
+* TwitterControl for Nette Framework 2.0, http://github.com/smasty/TwitterControl
+* Copyright 2011 Martin Srank (http://smasty.net)
+* Licensed under terms of the MIT License (http://opensource.org/licenses/mit-license)
 
 Version 1.0
 
@@ -55,15 +55,15 @@ You can find them in the 'client-side' directory.
 Available config options
 ========================
 
-screenName	Twitter screen name (either screenName or userId is required)
-userId		Twitter user ID (takes precedence over screenName, if both specified)
-tweetCount	Number of tweets to load (max. 200)
+	screenName  Twitter screen name (either screenName or userId is required)
+	userId      Twitter user ID (takes precedence over screenName, if both specified)
+	tweetCount  Number of tweets to load (max. 200)
 
-header		Render component header with user info
-avatars		Render avatars next to tweets
-retweets	Include retweets
-replies		Include replies
-intents		Render tweet intents (reply, retweet, favorite)
+	header      Render component header with user info
+	avatars     Render avatars next to tweets
+	retweets    Include retweets
+	replies     Include replies
+	intents     Render tweet intents (reply, retweet, favorite)
 
 All config options can be passed either to the class constructor, or the render method.
 Screen name or User ID, however, have to be specified in constructor.
