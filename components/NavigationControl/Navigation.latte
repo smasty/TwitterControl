@@ -10,7 +10,7 @@
 {/if}
 {if isset($children) && !($control->node && !$renderTree)}
 	<ul n:inner-foreach="$children as $child" n:class="!$control->node ? 'control menu'">
-		<li class="{if $child->isCurrent}current {/if}{if $child->hasChildren()}parent {else}leaf {/if}{if $iterator->first}first {/if}{if $iterator->last}last {/if}{if $iterator->odd}odd {else}even {/if}item-{$iterator->counter}">
+		<li n:class="$child->isCurrent ? current, $child->hsChildren() ? parent : leaf, $iterator->first ? first $iterator->last ? last, $iterator->odd ? odd, $iterator->even ? even, item-$iterator->counter">
 			{!$child->render($renderTree)}
 		</li>
 	</ul>
