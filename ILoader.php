@@ -12,9 +12,16 @@ namespace Smasty\Components\Twitter;
  * TwitterControl tweet loader interface.
  *
  * @author Martin Srank, http://smasty.net
- * @version 2.0
- * @license The MIT License, http://opensource.org/licenses/mit-license
  */
 interface ILoader {
+
+
+	/**
+	 * Get the loaded tweets, formatted according to Twitter REST API JSON format.
+	 * @param array $config Configuration options
+	 * @return array|null
+	 */
+	public function getTweets(array $config);
+
 
 }
