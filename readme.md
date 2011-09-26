@@ -2,7 +2,7 @@
 * Copyright 2011 Martin Srank (http://smasty.net)
 * Licensed under terms of the MIT License (http://opensource.org/licenses/mit-license)
 
-Version 1.0
+Version 2.0
 
 About
 =====
@@ -23,7 +23,7 @@ Usage
 In presenter:
 
 	protected function createComponentTwitterFeed($name){
-		return new Smasty\Components\TwitterControl(array(
+		return new Smasty\Components\Twitter\Control(array(
 			'screenName' => 'TesterJohnny',
 			'tweetCount' => 10
 		));
@@ -48,7 +48,8 @@ In presenter template:
 	{control twitterFeed, tweetCount => 5, replies => false}
 
 
-Don't forget to embed the CSS style file along with the sprite image.
+Don't forget to embed the CSS style file along with the sprite image,
+and also the JavaScript file.
 You can find them in the 'client-side' directory.
 
 
