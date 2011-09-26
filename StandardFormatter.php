@@ -225,7 +225,7 @@ class StandardFormatter extends Nette\Object implements IFormatter {
 	 */
 	protected function createMediaEntity($entity){
 		return Html::el('a', $entity['display'] ? : $entity['url'])
-				->class('link media')
+				->class('link media media-' . $entity['mediaType'])
 				->href($entity['url'])
 				->target('_blank')
 				->title($entity['expanded'] ? : $entity['url'])
