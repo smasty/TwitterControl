@@ -88,7 +88,7 @@ class StandardFormatter extends Nette\Object implements IFormatter {
 
 
 	/**
-	 * Geerate array of entites for given tweet.
+	 * Generate array of entites for given tweet.
 	 * @param \stdClass $tweet
 	 * @return array
 	 */
@@ -131,59 +131,108 @@ class StandardFormatter extends Nette\Object implements IFormatter {
 	}
 
 
-	protected function injectEntities($entities, $text){
+	/**
+	 * Inject entities to their position in the given text.
+	 * @param array $entities
+	 * @param string $text
+	 * @return string
+	 */
+	protected function injectEntities(array $entities, $text){
 		$i = 0;
 		$end = Strings::length($text) - 1;
 		$html = '';
 		while($i <= $end){
 			if(!isset($entities[$i])){
 				$html .= iconv_substr($text, $i, 1, 'UTF-8');
-				++$i;
+				$i++;
 				continue;
 			}
-			switch($entities[$i]['type']){
+			$entity = $entities[$i];
+			switch($entity['type']){
 				case 'mention':
-					$html .= Html::el('span', '@')
-						->class('mention')
-						->add(Html::el('a', $entities[$i]['screenName'])
-						->href("http://twitter.com/{$entities[$i]['screenName']}")
-						->target('_blank')
-						->title("{$entities[$i]['name']} - @{$entities[$i]['screenName']}"));
-					$i += Strings::length($entities[$i]['screenName']) + 1;
+					$html .= $this->createMentionEntity($entity);
+					$i += Strings::length($entity['screenName']) + 1;
 					break;
 
 				case 'hashtag':
-					$html .= Html::el('a', "#{$entities[$i]['text']}")
-						->class('hashtag')
-						->href("http://twitter.com/search/?q=%23{$entities[$i]['text']}")
-						->target('_blank');
-					$i += Strings::length($entities[$i]['text']) + 1;
+					$html .= $this->createHashtagEntity($entity);
+					$i += Strings::length($entity['text']) + 1;
 					break;
 
 				case 'url':
-					$html .= Html::el('a', $entities[$i]['display'] ? : $entities[$i]['url'])
-						->class('link')
-						->href($entities[$i]['url'])
-						->target('_blank')
-						->title($entities[$i]['expanded'] ? : $entities[$i]['url']);
-					$i += Strings::length($entities[$i]['url']);
+					$html .= $this->createUrlEntity($entity);
+					$i += Strings::length($entity['url']);
 					break;
 
 				case 'media':
-					$html .= Html::el('a', $entities[$i]['display'] ? : $entities[$i]['url'])
-						->class('link media')
-						->href($entities[$i]['url'])
-						->target('_blank')
-						->title($entities[$i]['expanded'] ? : $entities[$i]['url'])
-						->data(array(
-						'media-url' => $entities[$i]['mediaUrl'],
-						'media-type' => $entities[$i]['mediaType']
-						));
-					$i += Strings::length($entities[$i]['url']);
+					$html .= $this->createMediaEntity($entity);
+					$i += Strings::length($entity['url']);
 					break;
 			}
 		}
 		return $html;
+	}
+
+
+	/**
+	 * Create HTML for Mention entity.
+	 * @param array $entity
+	 * @return Html
+	 */
+	protected function createMentionEntity($entity){
+		return Html::el('span', '@')
+				->class('mention')
+				->add(
+					Html::el('a', $entity['screenName'])
+						->href("http://twitter.com/$entity[screenName]")
+						->target('_blank')
+						->title("$entity[name] - @$entity[screenName]")
+				);
+	}
+
+
+	/**
+	 * Create HTML for Hashtag entity.
+	 * @param array $entity
+	 * @return Html
+	 */
+	protected function createHashtagEntity($entity){
+		return Html::el('a', "#$entity[text]")
+				->class('hashtag')
+				->href("http://twitter.com/search/?q=%23$entity[text]")
+				->target('_blank');
+	}
+
+
+	/**
+	 * Create HTML for URL entity.
+	 * @param array $entity
+	 * @return Html
+	 */
+	protected function createUrlEntity($entity){
+		return Html::el('a', $entity['display'] ? : $entity['url'])
+				->class('link')
+				->href($entity['url'])
+				->target('_blank')
+				->title($entity['expanded'] ? : $entity['url']);
+	}
+
+
+	/**
+	 * Create HTML for Media entity.
+	 * @param array $entity
+	 * @return Html
+	 */
+	protected function createMediaEntity($entity){
+		return Html::el('a', $entity['display'] ? : $entity['url'])
+				->class('link media')
+				->href($entity['url'])
+				->target('_blank')
+				->title($entity['expanded'] ? : $entity['url'])
+				->data(array(
+					'media-url' => $entity['mediaUrl'],
+					'media-type' => $entity['mediaType']
+				));
 	}
 
 
