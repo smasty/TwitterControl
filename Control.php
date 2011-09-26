@@ -192,7 +192,7 @@ class Control extends NetteControl {
 	 * @param IFormatter $formatter
 	 * @return void
 	 */
-	public function setLoader(IFormatter $formatter){
+	public function setFormatter(IFormatter $formatter){
 		$this->formatter = $formatter;
 	}
 
@@ -232,8 +232,13 @@ class Control extends NetteControl {
 			$this->template->render();
 			ob_end_flush();
 		} catch(TwitterException $e){
-			Debugger::log($e, Debugger::WARNING);
-			ob_end_clean();
+			if(Debugger::$productionMode){
+				Debugger::log($e, Debugger::WARNING);
+				ob_end_clean();
+			} else{
+				throw $e;
+				ob_end_flush();
+			}
 		}
 	}
 

@@ -10,7 +10,8 @@ namespace Smasty\Components\Twitter;
 use Nette,
 	Nette\Http\Url,
 	Nette\Utils\Json,
-	Nette\Utils\JsonException;
+	Nette\Utils\JsonException,
+	Nette\Diagnostics\Debugger;
 
 
 /**
@@ -35,10 +36,18 @@ class StandardLoader extends Nette\Object implements ILoader {
 		if(isset($this->tweetCache[$path])){
 			return $this->tweetCache[$path];
 		}
+
+		Debugger::tryError();
+		$content = file_get_contents($path);
+		if(Debugger::catchError($e)){
+			throw new TwitterException($e->getMessage(), $e->getCode(), $e);
+			return;
+		}
+
 		try{
-			return $this->tweetCache[$path] = Json::decode(@file_get_contents($path)); // intentional @ shut-up
+			return $this->tweetCache[$path] = Json::decode($content);
 		} catch(JsonException $e){
-			return null;
+			throw new TwitterException($e->getMessage(), $e->getCode(), $e);
 		}
 	}
 
