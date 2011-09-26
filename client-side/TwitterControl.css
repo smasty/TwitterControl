@@ -56,3 +56,8 @@
 .TwitterControl .intents a.retweet{background-position:0 -128px}
 .TwitterControl .intents a.retweet:hover{background-position:0 -144px;text-indent:-65px}
 .TwitterControl .intents a.retweet:active{background-position:0 -160px}
+
+
+#TwitterControl-preview{position:absolute;top:0;left:0;right:0;bottom:0;z-index:200}
+#TwitterControl-preview .overlay{position:absolute;top:0;left:0;right:0;bottom:0;z-index:201;background:#000;opacity:.8}
+#TwitterControl-preview .preview{position:absolute;z-index:202;background:#fff;border:10px solid #222;margin:100px 0 0 -10px}

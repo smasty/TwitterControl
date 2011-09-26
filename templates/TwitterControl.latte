@@ -65,15 +65,12 @@
 						<a href="{$t->user->screen_name|userLink:$t->id_str}">{$t->created_at|timeFormat}</a>
 					</time>
 					<p n:if="$config->intents" class="intents">
-						<a href="{$t->id_str|intentLink:'reply'}" class="reply">Reply</a>
-						<a href="{$t->id_str|intentLink:'retweet'}" class="retweet">Retweet</a>
-						<a href="{$t->id_str|intentLink:'favorite'}" class="favorite">Favorite</a>
+						<a target="_blank" href="{$t->id_str|intentLink:'reply'}" class="reply">Reply</a>
+						<a target="_blank" href="{$t->id_str|intentLink:'retweet'}" class="retweet">Retweet</a>
+						<a target="_blank" href="{$t->id_str|intentLink:'favorite'}" class="favorite">Favorite</a>
 					</p>
 				</div>
 			</div>
 		</li>
 	</ul>
-{if $config->intents}
-	<script src="http://platform.twitter.com/widgets.js"></script>
-{/if}
 </div>
