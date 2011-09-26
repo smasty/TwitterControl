@@ -5,11 +5,11 @@
  * Licensed under terms of the MIT License (http://opensource.org/licenses/mit-license)
  */
 
-namespace Smasty\Components;
+namespace Smasty\Components\Twitter;
 
 use Nette,
 	Nette\InvalidStateException,
-	Nette\Application\UI\Control,
+	Nette\Application\UI\Control as NetteControl,
 	Nette\Http\Url,
 	Nette\Utils\Json,
 	Nette\Utils\JsonException,
@@ -18,7 +18,7 @@ use Nette,
 
 
 /**
- * TwitterControl.
+ * TwitterControl renderable component.
  *
  * Available config options:
  * - screenName => Twitter screen name (either screenName or userId is required)
@@ -32,10 +32,10 @@ use Nette,
  * - intents => Render tweet intents (reply, retweet, favorite)
  *
  * @author Martin Srank, http://smasty.net
- * @version 1.0
+ * @version 2.0
  * @license The MIT License, http://opensource.org/licenses/mit-license
  */
-class TwitterControl extends Control {
+class Control extends NetteControl {
 
 
 	/** @var string */
