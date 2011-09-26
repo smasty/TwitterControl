@@ -12,11 +12,11 @@
 	{* Header *}
 	<div n:if="$config->header" class="header">
 		{var $user = $tweets[0]->user}
-		<a href="{$user->screen_name|twUrl}" target="_blank">
+		<a href="{$user->screen_name|userLink}" target="_blank">
 			<img src="{$user->profile_image_url|avatar}" width="75" height="75">
 		</a>
 		<strong>{$user->name}</strong>
-		<a href="{$user->screen_name|twUrl}" target="_blank">@{$user->screen_name}</a><br>
+		<a href="{$user->screen_name|userLink}" target="_blank">@{$user->screen_name}</a><br>
 		<span n:if="$user->location" class="location">{$user->location}</span>
 		<a n:if="$user->url" href="{$user->url}" target="_blank" class="url">{$user->url}</a>
 		<span class="followers">
@@ -39,11 +39,11 @@
 		">
 			{* "In reply to" link *}
 			<a n:if="$t->in_reply_to_status_id && $config->avatars" target="_blank"
-			   href="{$t->in_reply_to_screen_name|twUrl:$t->in_reply_to_status_id_str}"
+			   href="{$t->in_reply_to_screen_name|userLink:$t->in_reply_to_status_id_str}"
 			   class="in-reply" title="In reply to {$t->in_reply_to_screen_name}">@</a>
 
 			{* Tweet header - avatar, username *}
-			<a href="{$t->user->screen_name|twUrl}">
+			<a href="{$t->user->screen_name|userLink}">
 				<img n:if="$config->avatars" src="{$t->user->profile_image_url}" width="48" height="48" class="avatar">
 			</a>
 			<div n:tag-if="$config->avatars" class="wrap">
@@ -56,20 +56,18 @@
 				</p>
 				{* Tweet text *}
 				<p class="tweet">
-					<a n:if="!$config->avatars && isset($rt)" href="{$t->user->screen_name|twUrl}" class="retweeted">
-						{$t->user->screen_name}
-					</a>
-					{!$t|tweetify}
+					<a n:if="!$config->avatars && isset($rt)" href="{$t->user->screen_name|userLink}" class="retweeted">{$t->user->screen_name}</a>
+					{!$t|tweetFormat}
 				</p>
 				{* Tweet metadata - time/permalink, intents *}
 				<div class="meta">
 					<time datetime="{$t->created_at|date:'c'}" title="{$t->created_at|date:'g:i A M jS Y'}">
-						<a href="{$t->user->screen_name|twUrl:$t->id_str}">{$t->created_at|timeAgo}</a>
+						<a href="{$t->user->screen_name|userLink:$t->id_str}">{$t->created_at|timeFormat}</a>
 					</time>
 					<p n:if="$config->intents" class="intents">
-						<a href="{$t->id_str|intent:'reply'}" class="reply">Reply</a>
-						<a href="{$t->id_str|intent:'retweet'}" class="retweet">Retweet</a>
-						<a href="{$t->id_str|intent:'favorite'}" class="favorite">Favorite</a>
+						<a href="{$t->id_str|intentLink:'reply'}" class="reply">Reply</a>
+						<a href="{$t->id_str|intentLink:'retweet'}" class="retweet">Retweet</a>
+						<a href="{$t->id_str|intentLink:'favorite'}" class="favorite">Favorite</a>
 					</p>
 				</div>
 			</div>

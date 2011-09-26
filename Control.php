@@ -9,12 +9,8 @@ namespace Smasty\Components\Twitter;
 
 use Nette,
 	Nette\InvalidStateException,
-	Nette\Application\UI\Control as NetteControl,
-	Nette\Http\Url,
-	Nette\Utils\Json,
-	Nette\Utils\JsonException,
-	Nette\Utils\Strings,
-	Nette\Utils\Html;
+	Nette\Diagnostics\Debugger,
+	Nette\Application\UI\Control as NetteControl;
 
 
 /**
@@ -32,24 +28,27 @@ use Nette,
  * - intents => Render tweet intents (reply, retweet, favorite)
  *
  * @author Martin Srank, http://smasty.net
- * @version 2.0
- * @license The MIT License, http://opensource.org/licenses/mit-license
  */
 class Control extends NetteControl {
 
 
 	/** @var string */
-	private $templateFile = 'TwitterControl.latte';
+	public static $templateDirectory = '/templates';
 
+	/** @var string */
+	private $templateFile = '/TwitterControl.latte';
 
 	/** @var array */
 	private $config;
 
-	/** @var array */
-	private $tweetCache = array();
+	/** @var ILoader */
+	private $loader;
+
+	/** @var IFormatter */
+	private $formatter;
 
 
-	const VERSION = '1.0';
+	const VERSION = '2.0';
 
 
 	/**
@@ -61,13 +60,12 @@ class Control extends NetteControl {
 		if(!$config)
 			throw new InvalidStateException('No configuration given.');
 		if(is_scalar($config))
-				$config = array((is_numeric($config) ? 'userId' : 'screenName') => $config);
+			$config = array((is_numeric($config) ? 'userId' : 'screenName') => $config);
 
 		$defaults = array(
 			'screenName' => null,
 			'userId' => null,
 			'tweetCount' => 5,
-
 			'header' => true,
 			'avatars' => true,
 			'retweets' => true,
@@ -77,7 +75,7 @@ class Control extends NetteControl {
 
 		$this->config = $config + $defaults;
 
-		if($this->config['userId'] == null && $this->config['screenName'] == null)
+		if(!$this->config['userId'] && !$this->config['screenName'])
 			throw new InvalidStateException('No screenName/userId specified.');
 	}
 
@@ -158,14 +156,44 @@ class Control extends NetteControl {
 
 
 	/**
-	 * Render control
+	 * Get the tweet loader.
+	 * @return ILoader;
+	 */
+	public function getLoader(){
+		if($this->loader === null)
+			$this->loader = new StandardLoader;
+		return $this->loader;
+	}
+
+
+	/**
+	 * Set the tweet loader.
+	 * @param ILoader $loader
 	 * @return void
 	 */
-	protected function doRender(){
-		$this->template->setFile($this->getTemplateFile());
-		$this->template->config = (object) $this->config;
-		$this->template->tweets = $this->loadTweets();
-		$this->template->render();
+	public function setLoader(ILoader $loader){
+		$this->loader = $loader;
+	}
+
+
+	/**
+	 * Get the tweet formatter.
+	 * @return IFormatter
+	 */
+	public function getFormatter(){
+		if($this->formatter === null)
+			$this->formatter = new StandardFormatter;
+		return $this->formatter;
+	}
+
+
+	/**
+	 * Set the tweet formatter.
+	 * @param IFormatter $formatter
+	 * @return void
+	 */
+	public function setLoader(IFormatter $formatter){
+		$this->formatter = $formatter;
 	}
 
 
@@ -174,12 +202,14 @@ class Control extends NetteControl {
 	 * @return string
 	 */
 	public function getTemplateFile(){
-		return dirname($this->getReflection()->getFileName()) . '/' . $this->templateFile;
+		return dirname($this->reflection->fileName)
+			. static::$templateDirectory
+			. $this->templateFile;
 	}
 
 
 	/**
-	 * Set the template file name, relative to class directory.
+	 * Set the template file name, relative to the template directory.
 	 * @param string $filename
 	 * @return TwitterControl fluent interface
 	 */
@@ -190,42 +220,20 @@ class Control extends NetteControl {
 
 
 	/**
-	 * Generate URL for Twitter JSON API request.
-	 * @return Url
+	 * Render the component.
+	 * @return void
 	 */
-	protected function generateRequestUrl(){
-		$url = new Url('https://api.twitter.com/1/statuses/user_timeline.json');
-
-		if($this->config['userId'])
-			$url->appendQuery('user_id=' . $this->config['userId']);
-		elseif($this->config['screenName'])
-			$url->appendQuery('screen_name=' . $this->config['screenName']);
-
-		if($this->config['tweetCount'])
-			$url->appendQuery('count=' . $this->config['tweetCount']);
-		if($this->config['retweets'])
-			$url->appendQuery('include_rts=true');
-		if(!$this->config['replies'])
-			$url->appendQuery('exclude_replies=true');
-
-		$url->appendQuery('include_entities=true');
-		return $url;
-	}
-
-
-	/**
-	 * Load Tweets from Twitter.
-	 * @return array|null
-	 */
-	public function loadTweets(){
-		$path = (string) $this->generateRequestUrl();
-		if(isset($this->tweetCache[$path])){
-			return $this->tweetCache[$path];
-		}
+	protected function doRender(){
+		$this->template->setFile($this->getTemplateFile());
+		$this->template->config = (object) $this->config;
+		ob_start();
 		try{
-			return $this->tweetCache[$path] = Json::decode(@file_get_contents($path)); // intentional @ shut-up
-		} catch(JsonException $e){
-			return null;
+			$this->template->tweets = $this->getLoader()->getTweets($this->config);
+			$this->template->render();
+			ob_end_flush();
+		} catch(TwitterException $e){
+			Debugger::log($e, Debugger::WARNING);
+			ob_end_clean();
 		}
 	}
 
@@ -238,156 +246,20 @@ class Control extends NetteControl {
 	protected function createTemplate($class = NULL){
 		$template = parent::createTemplate($class);
 
+		$formatter = $this->getFormatter();
 		$template->registerHelper('avatar', function($url){
-			return str_replace('_normal.', '_reasonably_small.', $url);
-		});
-		$template->registerHelper('tweetify', callback($this, 'formatTweet'));
-		$template->registerHelper('timeAgo', callback($this, 'relativeTime'));
-		$template->registerHelper('twUrl', function($user, $status = null){
-			return "http://twitter.com/$user" . ($status ? "/statuses/$status" : '');
-		});
-		$template->registerHelper('intent', function($status, $action){
-			switch($action){
-				case 'reply':
-					return "http://twitter.com/intent/tweet?in_reply_to=$status";
-				case 'retweet':
-					return "http://twitter.com/intent/retweet?tweet_id=$status";
-				case 'favorite':
-					return "http://twitter.com/intent/favorite?tweet_id=$status";
-			}
-		});
+				return str_replace('_normal.', '_reasonably_small.', $url);
+			});
+		$template->registerHelper('tweetFormat', callback($formatter, 'formatTweet'));
+		$template->registerHelper('timeFormat', callback($formatter, 'formatTime'));
+		$template->registerHelper('userLink', callback($formatter, 'formatUserUrl'));
+		$template->registerHelper('intentLink', callback($formatter, 'formatIntentUrl'));
 
 		return $template;
 	}
 
 
-	/**
-	 * Relative time template helper.
-	 *
-	 * Based on David Grudl's timeAgoInWords, New BSD License.
-	 * @param mixed $time
-	 * @return string
-	 */
-	public function relativeTime($time){
-		if(!$time)
-			return false;
-		elseif(is_numeric($time))
-			$time = (int) $time;
-		elseif($time instanceof DateTime)
-			$time = $time->format('U');
-		else
-			$time = strtotime($time);
-
-		$delta = time() - $time;
-
-		$delta = round($delta / 60);
-		if ($delta <= 1) return 'just now';
-		if ($delta < 45) return "$delta minutes ago";
-		if ($delta < 90) return '1 hour ago';
-		if ($delta < 1440) return round($delta / 60) . ' hours ago';
-		if ($delta < 2880) return date('j M', $time);
-		if ($delta < 1051920) return date('j M', $time);
-		return date('j M y', $time);
-	}
-
-
-	/**
-	 * Tweet formatter - template helper.
-	 * @param \stdClass $tweet
-	 * @return string
-	 */
-	public function formatTweet(\stdClass $tweet){
-		$entities = array();
-		if(!isset($tweet->entities)){
-			return $tweet->text;
-		}
-		foreach($tweet->entities->user_mentions as $mention){
-			$entities[$mention->indices[0]] = array(
-				'type' => 'mention',
-				'screenName' => $mention->screen_name,
-				'name' => $mention->name
-			);
-		}
-		foreach($tweet->entities->hashtags as $hashtag){
-			$entities[$hashtag->indices[0]] = array(
-				'type' => 'hashtag',
-				'text' => $hashtag->text
-			);
-		}
-		foreach($tweet->entities->urls as $url){
-			$entities[$url->indices[0]] = array(
-				'type' => 'url',
-				'url' => $url->url,
-				'display' => $url->display_url,
-				'expanded' => $url->expanded_url
-			);
-		}
-		if(isset($tweet->entities->media)){
-			foreach($tweet->entities->media as $media){
-				$entities[$media->indices[0]] = array(
-					'type' => 'media',
-					'url' => $media->url,
-					'display' => $media->display_url,
-					'expanded' => $media->expanded_url,
-					'mediaType' => $media->type,
-					'mediaUrl' => $media->media_url
-				);
-			}
-		}
-		$pos = 0;
-		$text_end = Strings::length($tweet->text) - 1;
-		$html = '';
-		while($pos <= $text_end){
-
-			if(!isset($entities[$pos])){
-				$html .= mb_substr($tweet->text, $pos, 1);
-				++$pos;
-				continue;
-			}
-			switch($entities[$pos]['type']){
-				case 'mention':
-					$html .= Html::el('span', '@')
-						->class('mention')
-						->add(Html::el('a', $entities[$pos]['screenName'])
-							->href("http://twitter.com/{$entities[$pos]['screenName']}")
-							->target('_blank')
-							->title("{$entities[$pos]['name']} - @{$entities[$pos]['screenName']}"));
-					$pos += Strings::length($entities[$pos]['screenName']) + 1;
-					break;
-
-				case 'hashtag':
-					$html .= Html::el('a', "#{$entities[$pos]['text']}")
-						->class('hashtag')
-						->href("http://twitter.com/search/?q=%23{$entities[$pos]['text']}")
-						->target('_blank');
-					$pos += Strings::length($entities[$pos]['text']) + 1;
-					break;
-
-				case 'url':
-					$html .= Html::el('a', $entities[$pos]['display'] ?: $entities[$pos]['url'])
-						->class('link')
-						->href($entities[$pos]['url'])
-						->target('_blank')
-						->title($entities[$pos]['expanded'] ?: $entities[$pos]['url']);
-					$pos += Strings::length($entities[$pos]['url']);
-					break;
-
-				case 'media':
-					$html .= Html::el('a', $entities[$pos]['display'] ?: $entities[$pos]['url'])
-						->class('link media')
-						->href($entities[$pos]['url'])
-						->target('_blank')
-						->title($entities[$pos]['expanded'] ?: $entities[$pos]['url'])
-						->data(array(
-							'media-url' => $entities[$pos]['mediaUrl'],
-							'media-type'=> $entities[$pos]['mediaType']
-						));
-					$pos += Strings::length($entities[$pos]['url']);
-					break;
-			}
-		}
-		return $html;
-	}
-
-
 }
+
+
+class TwitterException extends \Exception {}
