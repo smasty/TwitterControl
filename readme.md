@@ -2,7 +2,21 @@
 * Copyright 2011 Martin Srank (http://smasty.net)
 * Licensed under terms of the MIT License (http://opensource.org/licenses/mit-license)
 
-Version 2.0
+Version 2.0.2
+
+Installation
+============
+
+Preferred way of installation is using [Composer](http://getcomposer.org).
+Add the following dependency to your `composer.json` file and you're ready to go.
+
+```json
+{
+	"require": {
+		"smasty/TwitterControl": "dev-master"
+	}
+}
+```
 
 About
 =====
@@ -22,12 +36,14 @@ Usage
 
 In presenter:
 
-	protected function createComponentTwitterFeed($name){
-		return new Smasty\Components\Twitter\Control(array(
-			'screenName' => 'TesterJohnny',
-			'tweetCount' => 10
-		));
-	}
+```php
+protected function createComponentTwitterFeed($name){
+	return new Smasty\Components\Twitter\Control(array(
+		'screenName' => 'TesterJohnny',
+		'tweetCount' => 10
+	));
+}
+```
 
 
 In presenter template:
