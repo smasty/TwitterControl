@@ -1,0 +1,20 @@
+{
+    "name": "smasty/TwitterControl",
+    "description": "Nette Framework Control for rendering tweets.",
+    "keywords": ["nette", "control", "twitter", "twitter-control"],
+    "homepage": "http://github.com/smasty/TwitterControl",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Smasty",
+            "homepage": "http://smasty.net"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.2",
+        "nette/nette": "2.0.*"
+    },
+    "autoload": {
+        "classmap": ["/"]
+    }
+}
