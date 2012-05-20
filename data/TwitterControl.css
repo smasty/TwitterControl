@@ -1,0 +1,72 @@
+body{margin:0 2em;color:#333;font:14px/1.7 "Arial", "Helvetica Neue", sans-serif}
+a{color:#05a;text-decoration:none}
+a:hover{color:#05a;text-decoration:underline}
+section{display:block;width:400px;padding:0 15px;float:left}
+h1, h2{margin:0}
+.todo{outline:1px dashed orange}
+
+
+/**
+ * TwitterControl for Nette Framework 2.0, http://github.com/smasty/TwitterControl
+ * Copyright 2011 Martin Srank (http://smasty.net)
+ * Licensed under terms of the MIT License (http://opensource.org/licenses/mit-license)
+ */
+
+.TwitterControl{overflow:auto}
+.TwitterControl p{margin:0;padding:0}
+
+.TwitterControl .header{padding:5px 5px 10px;background:#fff}
+.TwitterControl .header img{float:left;margin:0 20px 5px 0;border:0}
+.TwitterControl .header strong{font-weight:bold;font-size:1.2em;padding:0 5px 0 0}
+.TwitterControl .header .location{color:#555;font-style:italic;font-size:.9em}
+.TwitterControl .header .followers{font-size:1.1em;display:block}
+.TwitterControl .header .url{margin-left:5px;font-size:.9em}
+
+.TwitterControl ul{clear:both;margin:0;padding:0;list-style:none}
+.TwitterControl li{margin:0;padding:7px 5px;border-bottom:1px solid #eee;overflow:auto;position:relative}
+.TwitterControl.with-header li.first{border-top:1px solid #eee}
+.TwitterControl li.last{border-bottom:0}
+.TwitterControl li{background:#fff}
+
+.TwitterControl li p.tweet{font-size:.85em}
+.TwitterControl .meta, .TwitterControl .line{font-family:"Arial", "Helvetica Neue", sans-serif}
+.TwitterControl .meta{font-size:11px}
+.TwitterControl .line{font-size:14px}
+.TwitterControl li .in-reply{text-indent:-999em;display:block;width:14px;height:14px;background:url(TwitterControl-sprite.png) no-repeat 0 -32px;position:absolute;top:7px;right:7px}
+
+.TwitterControl li time{font-style:italic}
+.TwitterControl li time a{color:#666;padding-right:20px;background:url(TwitterControl-sprite.png) no-repeat right 0;float:right;height:16px}
+.TwitterControl li time a:hover{color:#29c;text-decoration:none;background-position:right -16px}
+.TwitterControl li .retweeted{padding-left:20px;background:url(TwitterControl-sprite.png) no-repeat 0 -146px}
+.TwitterControl li .retweeted:hover{background-position:0 -162px}
+
+.TwitterControl li .avatar{float:left;margin:0 7px 0 0;border:0}
+.TwitterControl li .wrap{margin-left:55px}
+
+.TwitterControl li .line{width:100%;height:1.5em;overflow:hidden}
+.TwitterControl li .name{font-size:12px;padding:0 2px}
+.TwitterControl li .retweeter{font-size:11px;color:#666;padding-left:18px;background:url(TwitterControl-sprite.png) no-repeat 0 -147px}
+.TwitterControl li .media-photo{padding-right:18px;background:url(TwitterControl-sprite.png) no-repeat right -177px}
+
+.TwitterControl.with-intents li time a{padding:0 0 0 20px;background-position:0 0;float:left}
+.TwitterControl.with-intents li time a:hover{background-position:0 -16px}
+
+.TwitterControl .intents{float:right}
+.TwitterControl .intents a{text-indent:-999em;display:block;float:left;width:16px;height:16px;background:url(TwitterControl-sprite.png) no-repeat;margin:0 5px 0 0;outline:none}
+.TwitterControl .intents a:hover{color:#666;text-decoration:none}
+
+.TwitterControl .intents a.reply{background-position:0 -48px}
+.TwitterControl .intents a.reply:hover{background-position:0 -64px;text-indent:-30px}
+
+.TwitterControl .intents a.favorite{background-position:0 -80px}
+.TwitterControl .intents a.favorite:hover{background-position:0 -96px;text-indent:-85px}
+.TwitterControl .intents a.favorite:active{background-position:0 -112px}
+
+.TwitterControl .intents a.retweet{background-position:0 -128px}
+.TwitterControl .intents a.retweet:hover{background-position:0 -144px;text-indent:-65px}
+.TwitterControl .intents a.retweet:active{background-position:0 -160px}
+
+
+#TwitterControl-preview{position:absolute;top:0;left:0;right:0;bottom:0;z-index:200;cursor:pointer}
+#TwitterControl-preview .overlay{position:absolute;top:0;left:0;right:0;bottom:0;z-index:201;background:#000;opacity:.8}
+#TwitterControl-preview .preview{position:absolute;z-index:202;background:#fff;border:10px solid #222;margin:100px 0 0 -10px}
