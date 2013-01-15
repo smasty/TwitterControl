@@ -24,7 +24,7 @@ Add the following dependency to your `composer.json` file and you're ready to go
 ```json
 {
 	"require": {
-		"smasty/TwitterControl": "dev-master"
+		"smasty/twitter-control": "dev-master"
 	}
 }
 ```

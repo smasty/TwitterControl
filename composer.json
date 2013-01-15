@@ -1,5 +1,5 @@
 {
-	"name": "smasty/TwitterControl",
+	"name": "smasty/twitter-control",
 	"description": "Nette Framework Control for rendering tweets.",
 	"keywords": ["nette", "control", "twitter", "twitter-control"],
 	"homepage": "http://github.com/smasty/TwitterControl",
